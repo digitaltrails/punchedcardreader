@@ -1,6 +1,10 @@
 # punchedcardreader
 IBM Punched Card reader - extract text from images of cards
 
+The punchedCardReader python script attempts to scan images of IBM 80 column punch cards extracting any recognisable text.
+
+An older version of this script is described at [http://codeincluded.blogspot.com/2012/07/punchcard-reader-software.html](http://codeincluded.blogspot.com/2012/07/punchcard-reader-software.html).  The version deposited here is a more recent refactoring of the original that includes several tidy ups and a few new features.
+
 # Usage
 
 ```
