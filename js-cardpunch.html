@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <style>
+    .scrollbox
+        {
+            width: 800px;
+            height: 600px;
+            border: 1px solid red;
+            overflow: scroll;
+        }
+    @media print
+        {
+            body * { visibility: hidden; }
+            #carddiv * { visibility: visible; }
+            #carddiv {position:fixed; top: 5px; left: 5px; }
+        }
+
+    </style>
+
+
+</head>
+<body>
+    <a id="cardButton" href="#carddiv" title="">Punch a card now!</a>
+    <div style="display: none;">
+        <div id="carddiv" style="width:1300px;height:720px;overflow: hidden;">
+            <form>
+                <tt>&amp;-0123456789ABCDEFGHIJKLMNOPQR/STUVWXYZ:#@'="`.&lt;(+|!$*);^~,%_&gt;?</tt><br/>
+                <input id="cardText" width="80" size="80" />
+            </form>
+            <svg style="width: 1200px;height: 550px;" id="cardsvg" xmlns="http://www.w3.org/2000/svg" version="1.1"/>
+
+            <br/>
+            <button type="button" id="download">Save as image</button>
+
+            <div style="text-align: right;"><a href="https://github.com/digitaltrails/punchedcardreader"><small>https://github.com/digitaltrails/punchedcardreader</small></a></div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.3.0/raphael.min.js"></script>
+    <!-- script src="js/cardpunch.js" type="text/javascript"></script> -->
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-mousewheel/3.1.13/jquery.mousewheel.min.js"></script>
+
+    <!-- Add fancyBox -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.css?v=2.0.6" type="text/css" media="screen" />
+
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js?v=2.0.6"></script>
+
+    <script type="text/javascript">
+
+        $(document).ready(function() {
+            $(".fancybox").fancybox({
+                helpers: {
+                    title : {
+                        type : 'float'
+                    }
+                }
+            });
+            $("#cardButton").fancybox({
+                'titleShow'     : true,
+                'transitionIn'  : 'elastic',
+                'transitionOut' : 'elastic'
+            });
+            raph = cardpunchInit();
+
+        });
+
+    </script>
+
+<script>
+var CARD_COLUMNS = 80
+var CARD_ROWS = 12
+
+// found measurements at http://www.quadibloc.com/comp/cardint.htm
+var CARD_WIDTH = 7.0 + 3.0/8.0 // Inches
+var CARD_HEIGHT = 3.25 // Inches
+var CARD_COL_WIDTH = 0.087 // Inches
+var CARD_HOLE_WIDTH = 0.055 // Inches IBM, 0.056 Control Data
+var CARD_ROW_HEIGHT = 0.25 // Inches
+var CARD_HOLE_HEIGHT = 0.125 // Inches
+var CARD_TOPBOT_MARGIN = 3.0/16.0 // Inches at top and bottom
+var CARD_SIDE_MARGIN = 0.2235 // Inches on each side
+var SCALE = 160
+var MARGIN = 20
+
+var charMap = new Object();
+charMap["&"] = parseInt("100000000000", 2);
+charMap["-"] = parseInt("010000000000", 2);
+charMap["0"] = parseInt("001000000000", 2);
+charMap["1"] = parseInt("000100000000", 2);
+charMap["2"] = parseInt("000010000000", 2);
+charMap["3"] = parseInt("000001000000", 2);
+charMap["4"] = parseInt("000000100000", 2);
+charMap["5"] = parseInt("000000010000", 2);
+charMap["6"] = parseInt("000000001000", 2);
+charMap["7"] = parseInt("000000000100", 2);
+charMap["8"] = parseInt("000000000010", 2);
+charMap["9"] = parseInt("000000000001", 2);
+charMap["A"] = parseInt("100100000000", 2);
+charMap["B"] = parseInt("100010000000", 2);
+charMap["C"] = parseInt("100001000000", 2);
+charMap["D"] = parseInt("100000100000", 2);
+charMap["E"] = parseInt("100000010000", 2);
+charMap["F"] = parseInt("100000001000", 2);
+charMap["G"] = parseInt("100000000100", 2);
+charMap["H"] = parseInt("100000000010", 2);
+charMap["I"] = parseInt("100000000001", 2);
+charMap["J"] = parseInt("010100000000", 2);
+charMap["K"] = parseInt("010010000000", 2);
+charMap["L"] = parseInt("010001000000", 2);
+charMap["M"] = parseInt("010000100000", 2);
+charMap["N"] = parseInt("010000010000", 2);
+charMap["O"] = parseInt("010000001000", 2);
+charMap["P"] = parseInt("010000000100", 2);
+charMap["Q"] = parseInt("010000000010", 2);
+charMap["R"] = parseInt("010000000001", 2);
+charMap["/"] = parseInt("001100000000", 2);
+charMap["S"] = parseInt("001010000000", 2);
+charMap["T"] = parseInt("001001000000", 2);
+charMap["U"] = parseInt("001000100000", 2);
+charMap["V"] = parseInt("001000010000", 2);
+charMap["W"] = parseInt("001000001000", 2);
+charMap["X"] = parseInt("001000000100", 2);
+charMap["Y"] = parseInt("001000000010", 2);
+charMap["Z"] = parseInt("001000000001", 2);
+charMap[":"] = parseInt("000010000010", 2);
+charMap["#"] = parseInt("000001000010", 2);
+charMap["@"] = parseInt("000000100010", 2);
+charMap["'"] = parseInt("000000010010", 2);
+charMap["="] = parseInt("000000001010", 2);
+charMap['"'] = parseInt("000000000110", 2);
+charMap["`"] = parseInt("100010000010", 2);
+charMap["."] = parseInt("100001000010", 2);
+charMap["<"] = parseInt("100000100010", 2);
+charMap["("] = parseInt("100000010010", 2);
+charMap["+"] = parseInt("100000001010", 2);
+charMap["|"] = parseInt("100000000110", 2);
+charMap["!"] = parseInt("010010000010", 2);
+charMap["$"] = parseInt("010001000010", 2);
+charMap["*"] = parseInt("010000100010", 2);
+charMap[")"] = parseInt("010000010010", 2);
+charMap[";"] = parseInt("010000001010", 2);
+charMap["^"] = parseInt("010000000110", 2);
+charMap["~"] = parseInt("001010000010", 2);
+charMap[","] = parseInt("001001000010", 2);
+charMap["%"] = parseInt("001000100010", 2);
+charMap["_"] = parseInt("001000010010", 2);
+charMap[">"] = parseInt("001000001010", 2);
+charMap["?"] = parseInt("001000000110", 2);
+charMap[" "] = parseInt("000000000000", 2);
+
+var holes = new Array(80);
+
+function drawHoles(cardCanvas, text) {
+    x = CARD_SIDE_MARGIN * SCALE + MARGIN;
+
+    for (var i = 0; i < 80; i++) {
+        y = CARD_TOPBOT_MARGIN * SCALE + MARGIN;
+        column = new Array(12)
+        holes[i] = column;
+        for (var j = 0; j < 12; j++) {
+            hole = cardCanvas.rect(x, y, CARD_HOLE_WIDTH * SCALE, CARD_HOLE_HEIGHT * SCALE);
+            hole.attr("fill", "#3f3f3f");
+            column[j] = hole;
+            y += CARD_ROW_HEIGHT * SCALE;
+        }
+        x += CARD_COL_WIDTH * SCALE;
+
+    }
+}
+
+var cardRect;
+function fillTextHoles(cardCanvas, text) {
+    x = CARD_SIDE_MARGIN * SCALE + MARGIN;
+
+    for (var i = 0; i < 80; i++) {
+        c = (text != null && i < text.length) ? text.charAt(i) : " ";
+        p = getColumnValue(c);
+        for (var j = 0; j < 12; j++) {
+            if (((1<<(11 - j)) & p)) {
+                holes[i][j].attr("fill", "#ffffff");
+            }
+            else {
+                holes[i][j].attr("fill", "#3f3f3f");
+            }
+        }
+    }
+    cardRect.attr("fill", "#000000"); //IE8 problem
+}
+
+var lastValue = "";
+function observeCardText(cardCanvas) {
+    var value = $('#cardText').val();
+    if (value != lastValue) {
+        value = value.toUpperCase();
+        $('#cardText').val(value);
+        lastValue = value;
+        fillTextHoles(cardCanvas, value);
+    }
+}
+
+function cardpunchInit() {
+    var cardCanvas = Raphael(document.getElementById("cardsvg"), CARD_WIDTH * SCALE + MARGIN, CARD_HEIGHT * SCALE + MARGIN);
+    cardRect = cardCanvas.rect(MARGIN,MARGIN, CARD_WIDTH * SCALE, CARD_HEIGHT * SCALE, MARGIN);
+    cardRect.attr("fill", "#000000");
+    drawHoles(cardCanvas, $("#cardText").val());
+    setInterval(function() { observeCardText(cardCanvas); }, 100);
+    return cardCanvas;
+}
+
+function getColumnValue(c) {
+    //alert(c);
+    if (c in charMap) {
+        return charMap[c];
+    }
+    return charMap["@"];
+}
+
+</script>
+
+</body>
+</html>
