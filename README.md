@@ -5,6 +5,8 @@ The punchedCardReader python script attempts to scan images of IBM 80 column pun
 
 An older version of this script is described at [http://codeincluded.blogspot.com/2012/07/punchcard-reader-software.html](http://codeincluded.blogspot.com/2012/07/punchcard-reader-software.html).  The version deposited here is a more recent refactoring of the original that includes several tidy ups and a few new features.
 
+(Link to the [bonus javascript card punch](https://digitaltrails.github.io/punchedcardreader/js-cardpunch.html) - punch yourself a tshirt)
+
 # Usage
 
 ```
